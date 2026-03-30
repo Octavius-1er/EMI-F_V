@@ -1,6 +1,4 @@
 // api/generate-infos.js
-// Cette fonction Vercel génère les vraies infos automatiquement en appelant Claude
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -46,7 +44,7 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
@@ -55,15 +53,14 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Claude API error:', error);
-      return res.status(response.status).json({ error: 'Claude API error' });
+      const errorText = await response.text();
+      console.error('Claude API error:', errorText);
+      return res.status(response.status).json({ error: errorText });
     }
 
     const data = await response.json();
     const content = data.content[0].text;
 
-    // Parser les réponses
     const rawInfos = content.split('===').map(q => q.trim()).filter(q => q);
     const parsedInfos = rawInfos.map(info => {
       try {
@@ -77,7 +74,6 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
       return null;
     }).filter(info => info !== null);
 
-    // Retourner max 5 infos
     const finalInfos = parsedInfos.slice(0, 5);
 
     if (finalInfos.length === 0) {
