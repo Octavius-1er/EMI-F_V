@@ -42,11 +42,12 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-6',
-        max_tokens: 3000,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
         ]
