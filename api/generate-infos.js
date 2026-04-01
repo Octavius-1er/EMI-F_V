@@ -1,4 +1,6 @@
 // api/generate-infos.js
+// Cette fonction Vercel génère les vraies infos automatiquement en appelant Claude
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -44,7 +46,7 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
           { role: 'user', content: prompt }
