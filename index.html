@@ -3,430 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EMI QUEST</title>
+  <title>EMI QUEST - Gemini Edition</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f97316 100%);
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 1rem;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-
-    .bg-deco { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-    .bg-deco::before {
-      content: ''; position: absolute; top: 2.5rem; left: 2.5rem;
-      width: 10rem; height: 10rem; background: white; opacity: 0.05;
-      border-radius: 50%; filter: blur(40px);
-    }
-    .bg-deco::after {
-      content: ''; position: absolute; bottom: 5rem; right: 5rem;
-      width: 15rem; height: 15rem; background: white; opacity: 0.05;
-      border-radius: 50%; filter: blur(60px);
-    }
-
-    #app {
-      position: relative; z-index: 10; width: 100%;
-      display: flex; justify-content: center;
-      margin: auto;
-      min-height: 100vh;
-      align-items: center;
-    }
-
-    .screen-start { text-align: center; padding: 1rem 0; }
-
-    .title {
-      font-size: clamp(3rem, 10vw, 5rem); font-weight: 900;
-      background: linear-gradient(to right, white, #fef08a);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      line-height: 1.1; margin-bottom: 2rem;
-      animation: bounce 1s infinite;
-    }
-    .subtitle { color: white; font-size: 1.4rem; font-weight: 300; margin-bottom: 3rem; }
-
-    .btn-list { display: flex; flex-direction: column; gap: 1rem; max-width: 28rem; margin: 0 auto; }
-    .btn-level {
-      width: 100%; padding: 1rem 1.5rem; background: white; color: #7c3aed;
-      font-weight: 700; font-size: 1.1rem; border: none; border-radius: 1rem;
-      cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.15s;
-    }
-    .btn-level:hover { transform: scale(1.05); }
-    .btn-level:active { transform: scale(0.97); }
-    .btn-level .desc { font-size: 0.75rem; opacity: 0.6; margin-top: 0.2rem; }
-
-    .hint-box {
-      margin-top: 3rem;
-      background: rgba(255,255,255,0.12); backdrop-filter: blur(8px);
-      border-radius: 1rem; padding: 1rem;
-      max-width: 28rem; margin-left: auto; margin-right: auto;
-      color: white; font-size: 0.85rem;
-    }
-    .hint-box p + p { margin-top: 0.4rem; }
-    .hint-box .note { margin-top: 0.6rem; opacity: 0.65; font-size: 0.75rem; }
-
-    .screen-play { width: 100%; max-width: 42rem; padding: 0.5rem 0; }
-
-    .scorebar {
-      background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
-      border-radius: 9999px; padding: 0.75rem 1.25rem;
-      display: flex; justify-content: space-between; align-items: center;
-      color: white; font-weight: 700; margin-bottom: 1.2rem;
-    }
-    .score-val { display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem; }
-
-    .card-stage { position: relative; min-height: 560px; }
-
-    .drag-label {
-      position: absolute; top: 2rem; z-index: 10;
-      padding: 0.4rem 1rem; font-size: 1.3rem; font-weight: 900;
-      border-radius: 0.5rem; border: 3px solid;
-      opacity: 0; pointer-events: none; transition: opacity 0.08s;
-    }
-    .drag-label.dleft  { left: 1rem;  color: #f87171; border-color: #f87171; transform: rotate(-8deg); }
-    .drag-label.dright { right: 1rem; color: #4ade80; border-color: #4ade80; transform: rotate(8deg); }
-
-    .card {
-      position: relative;
-      border-radius: 1.5rem; overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      min-height: 560px;
-      display: flex; flex-direction: column;
-      user-select: none; touch-action: pan-y;
-      will-change: transform;
-    }
-    .card.grabbable { cursor: grab; }
-    .card.grabbable:active { cursor: grabbing; }
-    .card.ok  { box-shadow: 0 0 0 4px #4ade80, 0 20px 60px rgba(0,0,0,0.3); }
-    .card.nok { box-shadow: 0 0 0 4px #f87171, 0 20px 60px rgba(0,0,0,0.3); }
-
-    @keyframes dropIn { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes exitLeft { to { transform: translateX(-150%) rotate(-20deg); opacity: 0; } }
-    @keyframes exitRight { to { transform: translateX(150%) rotate(20deg); opacity: 0; } }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-    .card.anim-drop { animation: dropIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
-    .card.anim-exit-l { animation: exitLeft 0.38s ease-in forwards; }
-    .card.anim-exit-r { animation: exitRight 0.38s ease-in forwards; }
-
-    .card-img { position: relative; width: 100%; height: 10rem; overflow: hidden; flex-shrink: 0; }
-    .card-img img { width: 100%; height: 100%; object-fit: cover; }
-    .card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, #4c1d95); }
-
-    .card-body { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; gap: 0.6rem; }
-    .label-tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; opacity: 0.75; }
-    .field { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28); border-radius: 0.65rem; padding: 0.5rem 0.7rem; }
-    .field-label { font-size: 0.68rem; font-weight: 700; opacity: 0.8; margin-bottom: 0.15rem; }
-    .field-val { font-size: 0.85rem; font-weight: 600; line-height: 1.3; }
-
-    .source-block { padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.28); }
-    .source-label { font-size: 0.68rem; font-weight: 700; opacity: 0.75; margin-bottom: 0.2rem; }
-    .source-block a { color: #fef08a; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem; }
-    .source-block a:hover { color: white; }
-    .source-text { color: #fef08a; font-size: 0.85rem; font-weight: 600; }
-    .swipe-hint { text-align: center; font-size: 0.82rem; opacity: 0.7; margin-top: auto; padding-top: 0.5rem; animation: pulse 2s infinite; }
-
-    .feedback-box { margin-top: auto; padding: 0.8rem; border-radius: 0.75rem; text-align: center; font-weight: 700; border: 1px solid rgba(255,255,255,0.3); }
-    .feedback-box.ok { background: rgba(34,197,94,0.35); color: #d1fae5; }
-    .feedback-box.nok { background: rgba(239,68,68,0.35); color: #fee2e2; }
-    .fb-msg { font-size: 1.05rem; margin-bottom: 0.35rem; }
-    .fb-truth { font-size: 0.78rem; opacity: 0.88; line-height: 1.4; font-weight: 500; }
-    .fb-src { font-size: 0.7rem; opacity: 0.65; margin-top: 0.25rem; }
-
-    .btn-row { display: flex; justify-content: space-around; align-items: center; margin-top: 1rem; padding: 0 0.5rem; }
-    .btn-ans { padding: 0.7rem 1.4rem; font-size: 1rem; font-weight: 700; color: white; border: none; border-radius: 1rem; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.2); transition: transform 0.12s, opacity 0.2s; }
-    .btn-ans.vrai { background: #4ade80; }
-    .btn-ans.faux { background: #f87171; }
-    .btn-ans:disabled { opacity: 0.35; cursor: default; }
-
-    .screen-result { text-align: center; padding: 1rem 0; }
-    .result-emoji { font-size: 5rem; margin-bottom: 1rem; }
-    .result-score { font-size: clamp(3.5rem, 12vw, 5rem); font-weight: 900; margin-bottom: 1rem; background: linear-gradient(to right, white, #d1d5db); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .result-score.gold { background: linear-gradient(to right, #fef08a, #eab308); -webkit-background-clip: text; }
-    .conseil-box { background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 1rem; padding: 1.1rem; max-width: 28rem; margin: 0 auto 2rem; color: white; font-size: 0.875rem; }
-    .btn-replay { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.9rem 2rem; background: white; color: #7c3aed; font-weight: 700; font-size: 1.1rem; border: none; border-radius: 1rem; cursor: pointer; }
+    /* Style simplifié pour l'exemple, garde ton CSS actuel ici */
+    body { font-family: sans-serif; background: #1a1a2e; color: white; display: flex; justify-content: center; padding: 20px; }
+    #app { max-width: 500px; width: 100%; text-align: center; }
+    .card { background: #16213e; border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px solid #0f3460; }
+    .btn-ans { padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; margin: 10px; }
+    .vrai { background: #4ade80; } .faux { background: #f87171; }
+    .loading { font-style: italic; opacity: 0.7; }
   </style>
 </head>
 <body>
-  <div class="bg-deco"></div>
-  <div id="app"></div>
+  <div id="app">
+    <h1>EMI QUEST</h1>
+    <div id="game-container">
+      <p>Chargement du module de vérification...</p>
+    </div>
+  </div>
 
 <script>
-/* ══════════════════════════════════════════
-   DONNÉES — Gemini via /api/generate-infos
-══════════════════════════════════════════ */
-let TOUTES_LES_INFOS = [];
+let questions = [];
+let currentIndex = 0;
+let score = 0;
 
-/* ══════════════════════════════════════════
-   ÉTAT
-══════════════════════════════════════════ */
-let gameState = 'start';
-let score = 0, questions = [], currentIndex = 0, currentQuestion = null;
-let locked = false;
-let dragStartX = 0, isDragging = false, dragX = 0;
-
-const icoTrend = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`;
-const icoExternal = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
-const icoReplay = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.51"/></svg>`;
-
-/* ══════════════════════════════════════════
-   LOGIQUE JEU
-══════════════════════════════════════════ */
-function generateQuestions() {
-  // On utilise directement le mélange renvoyé par Gemini
-  questions = [...TOUTES_LES_INFOS].sort(() => Math.random() - 0.5);
-  currentIndex = 0;
-  currentQuestion = questions[0] || null;
-}
-
-async function startGame() {
-  score = 0; locked = false;
-  gameState = 'loading';
-  renderScreen();
+async function initGame() {
+  const container = document.getElementById('game-container');
+  container.innerHTML = '<p class="loading">🤖 Gemini génère des pièges (Auteur : Titouen Lia)...</p>';
 
   try {
     const res = await fetch('/api/generate-infos');
     const data = await res.json();
-    if (data.infos && data.infos.length > 0) {
-      TOUTES_LES_INFOS = data.infos;
+    
+    if (data.infos) {
+      questions = data.infos;
+      showQuestion();
     } else {
-      throw new Error('Pas d\'infos reçues');
+      throw new Error("Erreur de données");
     }
-  } catch(e) {
-    alert('Erreur API : Vérifie ta GEMINI_API_KEY sur Vercel.');
-    gameState = 'start';
-    renderScreen();
-    return;
+  } catch (e) {
+    container.innerHTML = `<p style="color:red">Erreur : Vérifie ta clé GEMINI_API_KEY sur Vercel.</p>`;
   }
-
-  generateQuestions();
-  gameState = 'playing';
-  renderScreen();
 }
 
-function handleAnswer(isVrai) {
-  if (locked) return;
-  locked = true;
+function showQuestion() {
+  const container = document.getElementById('game-container');
+  const q = questions[currentIndex];
 
-  const isCorrect = isVrai === currentQuestion.isTrue;
-  if (isCorrect) score++;
-
-  const sv = document.getElementById('score-val');
-  if (sv) sv.textContent = score;
-
-  const card = document.getElementById('card');
-  if (!card) return;
-
-  card.style.transition = '';
-  card.style.transform = '';
-  card.classList.add(isVrai ? 'anim-exit-r' : 'anim-exit-l');
-
-  setTimeout(() => { showFeedbackCard(isCorrect); }, 380);
-
-  setTimeout(() => {
-    if (currentIndex + 1 < questions.length) {
-      currentIndex++;
-      currentQuestion = questions[currentIndex];
-      locked = false;
-      showPlayCard();
-    } else {
-      gameState = 'result';
-      renderScreen();
-    }
-  }, 2900); // Un peu plus de temps pour lire les explications "fourbes"
+  container.innerHTML = `
+    <div class="card">
+      <h3>Question ${currentIndex + 1} / 5</h3>
+      <p><strong>QUOI :</strong> ${q.what}</p>
+      <p><strong>AUTEUR :</strong> ${q.who}</p>
+      <p><strong>OÙ :</strong> ${q.where}</p>
+      <p><em>Source : ${q.source}</em></p>
+    </div>
+    <button class="btn-ans vrai" onclick="check(true)">VRAI</button>
+    <button class="btn-ans faux" onclick="check(false)">FAUX</button>
+  `;
 }
 
-/* ══════════════════════════════════════════
-   UI CARDS
-══════════════════════════════════════════ */
-function cardFields(q) {
-  return [
-    { icon:'❓', label:'QUOI', val: q.what },
-    { icon:'👤', label:'QUI', val: q.who },
-    { icon:'📅', label:'QUAND', val: q.when },
-    { icon:'📍', label:'OÙ', val: q.where},
-    { icon:'🎯', label:'POURQUOI', val: q.why },
-  ].map(f => `<div class="field"><div class="field-label">${f.icon} ${f.label}</div><div class="field-val">${f.val}</div></div>`).join('');
-}
+function check(answer) {
+  const q = questions[currentIndex];
+  const correct = (answer === q.isTrue);
+  if (correct) score++;
 
-function showPlayCard() {
-  const stage = document.getElementById('card-stage');
-  if (!stage) return;
-  const q = currentQuestion;
+  alert(correct ? "✅ Bien joué !" : `❌ Piégé ! \n${q.truth}`);
 
-  const qc = document.getElementById('q-counter');
-  if (qc) qc.textContent = `Question ${currentIndex + 1}/5`;
-
-  setButtons(false);
-
-  stage.innerHTML = `
-    <div class="drag-label dleft" id="dleft">❌ FAUX</div>
-    <div class="drag-label dright" id="dright">✅ VRAI</div>
-    <div id="card" class="card grabbable anim-drop">
-      ${q.image ? `<div class="card-img"><img src="${q.image}" alt="" onerror="this.parentElement.remove()"/></div>` : ''}
-      <div class="card-body">
-        <div class="label-tag">📰 INFORMATION À VÉRIFIER</div>
-        ${cardFields(q)}
-        <div class="source-block">
-          <div class="source-label">🔗 SOURCE</div>
-          <span class="source-text">${q.source}</span>
-        </div>
-        <div class="swipe-hint">👈 Swipe FAUX | Swipe VRAI 👉</div>
-      </div>
-    </div>`;
-  bindDrag();
-}
-
-function showFeedbackCard(isCorrect) {
-  const stage = document.getElementById('card-stage');
-  if (!stage) return;
-  const q = currentQuestion;
-  const fb = isCorrect ? { cls:'ok', msg:'✓ Bien vu !' } : { cls:'nok', msg:'✗ Incorrect !' };
-
-  setButtons(true);
-
-  stage.innerHTML = `
-    <div id="card" class="card ${fb.cls} anim-drop" style="cursor:default;">
-      <div class="card-body">
-        <div class="label-tag">VÉRIFICATION</div>
-        ${cardFields(q)}
-        <div class="feedback-box ${fb.cls}">
-          <div class="fb-msg">${fb.msg}</div>
-          <div class="fb-truth">${q.truth}</div>
-          <div class="fb-src">Média : ${q.source}</div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function setButtons(disabled) {
-  const bv = document.getElementById('btn-vrai');
-  const bf = document.getElementById('btn-faux');
-  if (bv) bv.disabled = disabled;
-  if (bf) bf.disabled = disabled;
-}
-
-/* ══════════════════════════════════════════
-   DRAG SYSTEM
-══════════════════════════════════════════ */
-function bindDrag() {
-  const card = document.getElementById('card');
-  if (!card) return;
-  card.addEventListener('mousedown', startDrag);
-  card.addEventListener('touchstart', startDrag, { passive: true });
-}
-
-function startDrag(e) {
-  if (locked) return;
-  isDragging = true;
-  dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
-  document.addEventListener('mousemove', moveDrag);
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchmove', moveDrag, { passive: false });
-  document.addEventListener('touchend', endDrag);
-}
-
-function moveDrag(e) {
-  if (!isDragging) return;
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  dragX = x - dragStartX;
-  const card = document.getElementById('card');
-  if (!card) return;
-  card.style.transform = `translateX(${dragX}px) rotate(${dragX / 15}deg)`;
-  card.style.transition = 'none';
-
-  const ratio = Math.min(Math.abs(dragX) / 100, 1);
-  document.getElementById('dleft').style.opacity = dragX < -15 ? ratio : 0;
-  document.getElementById('dright').style.opacity = dragX > 15 ? ratio : 0;
-  if (e.cancelable) e.preventDefault();
-}
-
-function endDrag() {
-  if (!isDragging) return;
-  isDragging = false;
-  document.removeEventListener('mousemove', moveDrag);
-  document.removeEventListener('mouseup', endDrag);
-  document.getElementById('dleft').style.opacity = 0;
-  document.getElementById('dright').style.opacity = 0;
-
-  if (Math.abs(dragX) > 90) {
-    handleAnswer(dragX > 0);
+  currentIndex++;
+  if (currentIndex < questions.length) {
+    showQuestion();
   } else {
-    const card = document.getElementById('card');
-    if (card) {
-      card.style.transition = 'transform 0.35s ease';
-      card.style.transform = 'translateX(0) rotate(0deg)';
-    }
+    showResult();
   }
 }
 
-/* ══════════════════════════════════════════
-   SCREENS
-══════════════════════════════════════════ */
-function renderScreen() {
-  const app = document.getElementById('app');
-
-  if (gameState === 'loading') {
-    app.innerHTML = `<div style="text-align:center; color:white;">
-      <div style="font-size:2rem; font-weight:800; margin-bottom:1.5rem;">🤖 Gemini prépare les pièges...</div>
-      <div style="display:flex; justify-content:center; gap:0.6rem;">
-        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0s"></div>
-        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.2s"></div>
-        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.4s"></div>
-      </div>
-    </div>`;
-    return;
-  }
-
-  if (gameState === 'start') {
-    app.innerHTML = `
-      <div class="screen-start">
-        <div class="title">EMI QUEST</div>
-        <p class="subtitle">Saurez-vous démasquer Titouen Lia ? 🔍</p>
-        <div class="btn-list">
-          <button class="btn-level" onclick="startGame()">🚀 COMMENCER LE TEST<div class="desc">Infos réelles vs Fake News</div></button>
-        </div>
-      </div>`;
-    return;
-  }
-
-  if (gameState === 'playing') {
-    app.innerHTML = `
-      <div class="screen-play">
-        <div class="scorebar">
-          <span id="q-counter">Question 1/5</span>
-          <span class="score-val">${icoTrend} <span id="score-val">${score}</span></span>
-        </div>
-        <div id="card-stage" class="card-stage"></div>
-        <div class="btn-row">
-          <button id="btn-faux" class="btn-ans faux" onclick="handleAnswer(false)">❌ FAUX</button>
-          <button id="btn-vrai" class="btn-ans vrai" onclick="handleAnswer(true)">✅ VRAI</button>
-        </div>
-      </div>`;
-    showPlayCard();
-    return;
-  }
-
-  if (gameState === 'result') {
-    app.innerHTML = `
-      <div class="screen-result">
-        <div class="result-emoji">${score >= 4 ? '🔥' : '📚'}</div>
-        <div class="result-score ${score >= 4 ? 'gold' : ''}">${score}/5</div>
-        <p class="result-msg">Attention aux auteurs comme Titouen Lia !</p>
-        <button class="btn-replay" onclick="gameState='start'; renderScreen();">${icoReplay} Rejouer</button>
-      </div>`;
-  }
+function showResult() {
+  document.getElementById('game-container').innerHTML = `
+    <h2>Terminé !</h2>
+    <p style="font-size: 2rem;">Score : ${score} / 5</p>
+    <button onclick="location.reload()" class="btn-ans">Rejouer</button>
+  `;
 }
 
-renderScreen();
+initGame();
 </script>
 </body>
 </html>
