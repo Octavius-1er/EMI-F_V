@@ -34,12 +34,11 @@
     #app {
       position: relative; z-index: 10; width: 100%;
       display: flex; justify-content: center;
-      margin: auto; /* centrage vertical */
+      margin: auto;
       min-height: 100vh;
       align-items: center;
     }
 
-    /* ── ACCUEIL ── */
     .screen-start { text-align: center; padding: 1rem 0; }
 
     .title {
@@ -71,7 +70,6 @@
     .hint-box p + p { margin-top: 0.4rem; }
     .hint-box .note { margin-top: 0.6rem; opacity: 0.65; font-size: 0.75rem; }
 
-    /* ── JEU ── */
     .screen-play { width: 100%; max-width: 42rem; padding: 0.5rem 0; }
 
     .scorebar {
@@ -82,13 +80,8 @@
     }
     .score-val { display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem; }
 
-    /* Le stage ne doit PAS avoir overflow:hidden — sinon la carte arrive de haut est cachée */
-    .card-stage {
-      position: relative;
-      min-height: 560px;
-    }
+    .card-stage { position: relative; min-height: 560px; }
 
-    /* Labels VRAI/FAUX pendant le drag */
     .drag-label {
       position: absolute; top: 2rem; z-index: 10;
       padding: 0.4rem 1rem; font-size: 1.3rem; font-weight: 900;
@@ -98,7 +91,6 @@
     .drag-label.dleft  { left: 1rem;  color: #f87171; border-color: #f87171; transform: rotate(-8deg); }
     .drag-label.dright { right: 1rem; color: #4ade80; border-color: #4ade80; transform: rotate(8deg); }
 
-    /* ── CARTE ── */
     .card {
       position: relative;
       border-radius: 1.5rem; overflow: hidden;
@@ -112,128 +104,55 @@
     }
     .card.grabbable { cursor: grab; }
     .card.grabbable:active { cursor: grabbing; }
-
-    /* Bordure colorée selon résultat */
     .card.ok  { box-shadow: 0 0 0 4px #4ade80, 0 20px 60px rgba(0,0,0,0.3); }
     .card.nok { box-shadow: 0 0 0 4px #f87171, 0 20px 60px rgba(0,0,0,0.3); }
 
-    /* ── ANIMATIONS ── */
-    @keyframes dropIn {
-      from { transform: translateY(-120%); opacity: 0; }
-      to   { transform: translateY(0);     opacity: 1; }
-    }
-    @keyframes exitLeft {
-      to { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
-    }
-    @keyframes exitRight {
-      to { transform: translateX(150%) rotate(20deg); opacity: 0; }
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-14px); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
+    @keyframes dropIn { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes exitLeft { to { transform: translateX(-150%) rotate(-20deg); opacity: 0; } }
+    @keyframes exitRight { to { transform: translateX(150%) rotate(20deg); opacity: 0; } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    .card.anim-drop     { animation: dropIn   0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
-    .card.anim-exit-l   { animation: exitLeft  0.38s ease-in forwards; }
-    .card.anim-exit-r   { animation: exitRight 0.38s ease-in forwards; }
+    .card.anim-drop { animation: dropIn 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
+    .card.anim-exit-l { animation: exitLeft 0.38s ease-in forwards; }
+    .card.anim-exit-r { animation: exitRight 0.38s ease-in forwards; }
 
-    /* ── CONTENU CARTE ── */
     .card-img { position: relative; width: 100%; height: 10rem; overflow: hidden; flex-shrink: 0; }
     .card-img img { width: 100%; height: 100%; object-fit: cover; }
-    .card-img::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(to bottom, transparent 40%, #4c1d95);
-    }
+    .card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, #4c1d95); }
 
     .card-body { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; gap: 0.6rem; }
-
     .label-tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; opacity: 0.75; }
-
-    .field {
-      background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28);
-      border-radius: 0.65rem; padding: 0.5rem 0.7rem;
-    }
+    .field { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28); border-radius: 0.65rem; padding: 0.5rem 0.7rem; }
     .field-label { font-size: 0.68rem; font-weight: 700; opacity: 0.8; margin-bottom: 0.15rem; }
-    .field-val   { font-size: 0.85rem; font-weight: 600; line-height: 1.3; }
+    .field-val { font-size: 0.85rem; font-weight: 600; line-height: 1.3; }
 
     .source-block { padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.28); }
     .source-label { font-size: 0.68rem; font-weight: 700; opacity: 0.75; margin-bottom: 0.2rem; }
-    .source-block a {
-      color: #fef08a; font-size: 0.85rem; font-weight: 600;
-      text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem;
-    }
+    .source-block a { color: #fef08a; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem; }
     .source-block a:hover { color: white; }
     .source-text { color: #fef08a; font-size: 0.85rem; font-weight: 600; }
+    .swipe-hint { text-align: center; font-size: 0.82rem; opacity: 0.7; margin-top: auto; padding-top: 0.5rem; animation: pulse 2s infinite; }
 
-    .swipe-hint {
-      text-align: center; font-size: 0.82rem; opacity: 0.7;
-      margin-top: auto; padding-top: 0.5rem;
-      animation: pulse 2s infinite;
-    }
-
-    /* ── FEEDBACK (affiché sur la carte après réponse) ── */
-    .feedback-box {
-      margin-top: auto; padding: 0.8rem; border-radius: 0.75rem;
-      text-align: center; font-weight: 700;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .feedback-box.ok  { background: rgba(34,197,94,0.35); color: #d1fae5; }
-    .feedback-box.nok { background: rgba(239,68,68,0.35);  color: #fee2e2; }
-    .fb-msg   { font-size: 1.05rem; margin-bottom: 0.35rem; }
+    .feedback-box { margin-top: auto; padding: 0.8rem; border-radius: 0.75rem; text-align: center; font-weight: 700; border: 1px solid rgba(255,255,255,0.3); }
+    .feedback-box.ok { background: rgba(34,197,94,0.35); color: #d1fae5; }
+    .feedback-box.nok { background: rgba(239,68,68,0.35); color: #fee2e2; }
+    .fb-msg { font-size: 1.05rem; margin-bottom: 0.35rem; }
     .fb-truth { font-size: 0.78rem; opacity: 0.88; line-height: 1.4; font-weight: 500; }
-    .fb-src   { font-size: 0.7rem; opacity: 0.65; margin-top: 0.25rem; }
+    .fb-src { font-size: 0.7rem; opacity: 0.65; margin-top: 0.25rem; }
 
-    /* ── BOUTONS ── */
-    .btn-row {
-      display: flex; justify-content: space-around; align-items: center;
-      margin-top: 1rem; padding: 0 0.5rem;
-    }
-    .btn-wrap { text-align: center; }
-    .btn-arrow { color: white; font-size: 1.5rem; margin: 0.2rem 0; }
-    .btn-ans {
-      padding: 0.7rem 1.4rem; font-size: 1rem; font-weight: 700;
-      color: white; border: none; border-radius: 1rem; cursor: pointer;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.2); transition: transform 0.12s, opacity 0.2s;
-    }
-    .btn-ans:hover:not(:disabled) { transform: scale(1.07); }
-    .btn-ans:active:not(:disabled) { transform: scale(0.95); }
+    .btn-row { display: flex; justify-content: space-around; align-items: center; margin-top: 1rem; padding: 0 0.5rem; }
+    .btn-ans { padding: 0.7rem 1.4rem; font-size: 1rem; font-weight: 700; color: white; border: none; border-radius: 1rem; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.2); transition: transform 0.12s, opacity 0.2s; }
     .btn-ans.vrai { background: #4ade80; }
     .btn-ans.faux { background: #f87171; }
     .btn-ans:disabled { opacity: 0.35; cursor: default; }
 
-    /* ── RÉSULTAT ── */
     .screen-result { text-align: center; padding: 1rem 0; }
     .result-emoji { font-size: 5rem; margin-bottom: 1rem; }
-    .result-emoji.do-bounce { animation: bounce 1s infinite; }
-    .result-score {
-      font-size: clamp(3.5rem, 12vw, 5rem); font-weight: 900; margin-bottom: 1rem;
-      background: linear-gradient(to right, white, #d1d5db);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .result-score.gold {
-      background: linear-gradient(to right, #fef08a, #eab308);
-      -webkit-background-clip: text; background-clip: text;
-    }
-    .result-msg { color: white; font-size: 1.25rem; font-weight: 300; max-width: 28rem; margin: 0 auto 1.5rem; }
-    .conseil-box {
-      background: rgba(255,255,255,0.12); backdrop-filter: blur(8px);
-      border-radius: 1rem; padding: 1.1rem; max-width: 28rem;
-      margin: 0 auto 2rem; color: white; font-size: 0.875rem;
-    }
-    .conseil-box strong { display: block; margin-bottom: 0.4rem; }
-    .conseil-box p { opacity: 0.75; }
-    .btn-replay {
-      display: inline-flex; align-items: center; gap: 0.6rem;
-      padding: 0.9rem 2rem; background: white; color: #7c3aed;
-      font-weight: 700; font-size: 1.1rem; border: none; border-radius: 1rem;
-      cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.15s;
-    }
-    .btn-replay:hover { transform: scale(1.05); }
-    .btn-replay:active { transform: scale(0.97); }
+    .result-score { font-size: clamp(3.5rem, 12vw, 5rem); font-weight: 900; margin-bottom: 1rem; background: linear-gradient(to right, white, #d1d5db); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .result-score.gold { background: linear-gradient(to right, #fef08a, #eab308); -webkit-background-clip: text; }
+    .conseil-box { background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); border-radius: 1rem; padding: 1.1rem; max-width: 28rem; margin: 0 auto 2rem; color: white; font-size: 0.875rem; }
+    .btn-replay { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.9rem 2rem; background: white; color: #7c3aed; font-weight: 700; font-size: 1.1rem; border: none; border-radius: 1rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -242,17 +161,9 @@
 
 <script>
 /* ══════════════════════════════════════════
-   DONNÉES — les vraies infos sont générées
-   par Claude via /api/generate-infos
+   DONNÉES — Gemini via /api/generate-infos
 ══════════════════════════════════════════ */
-let VRAIES_INFOS = [];
-const FAUSSES_INFOS = [
-  { what:"PLACEHOLDER 1 - À COMPLÉTER", who:"??", when:"??", where:"??", why:"??", isTrue:false, source:"À remplir", sourceUrl:"", image:"", truth:"À remplir - explication de pourquoi c'est faux" },
-  { what:"PLACEHOLDER 2 - À COMPLÉTER", who:"??", when:"??", where:"??", why:"??", isTrue:false, source:"À remplir", sourceUrl:"", image:"", truth:"À remplir - explication de pourquoi c'est faux" },
-  { what:"PLACEHOLDER 3 - À COMPLÉTER", who:"??", when:"??", where:"??", why:"??", isTrue:false, source:"À remplir", sourceUrl:"", image:"", truth:"À remplir - explication de pourquoi c'est faux" },
-  { what:"PLACEHOLDER 4 - À COMPLÉTER", who:"??", when:"??", where:"??", why:"??", isTrue:false, source:"À remplir", sourceUrl:"", image:"", truth:"À remplir - explication de pourquoi c'est faux" },
-  { what:"PLACEHOLDER 5 - À COMPLÉTER", who:"??", when:"??", where:"??", why:"??", isTrue:false, source:"À remplir", sourceUrl:"", image:"", truth:"À remplir - explication de pourquoi c'est faux" }
-];
+let TOUTES_LES_INFOS = [];
 
 /* ══════════════════════════════════════════
    ÉTAT
@@ -260,30 +171,23 @@ const FAUSSES_INFOS = [
 let gameState = 'start';
 let score = 0, questions = [], currentIndex = 0, currentQuestion = null;
 let locked = false;
-
-/* drag */
 let dragStartX = 0, isDragging = false, dragX = 0;
 
-/* ══════════════════════════════════════════
-   ICÔNES SVG
-══════════════════════════════════════════ */
-const icoTrend    = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`;
+const icoTrend = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`;
 const icoExternal = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
-const icoReplay   = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.51"/></svg>`;
+const icoReplay = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.51"/></svg>`;
 
 /* ══════════════════════════════════════════
    LOGIQUE JEU
 ══════════════════════════════════════════ */
-function generateQuestions(diff) {
-  let s = diff === 'facile' ? [...VRAIES_INFOS.slice(0,3), ...FAUSSES_INFOS.slice(0,2)]
-        : diff === 'moyen'  ? [...VRAIES_INFOS.slice(0,4), ...FAUSSES_INFOS.slice(1,2)]
-        : [VRAIES_INFOS[0], VRAIES_INFOS[2], VRAIES_INFOS[4], FAUSSES_INFOS[1], FAUSSES_INFOS[3]];
-  questions = s.sort(() => Math.random() - 0.5).slice(0, 5);
+function generateQuestions() {
+  // On utilise directement le mélange renvoyé par Gemini
+  questions = [...TOUTES_LES_INFOS].sort(() => Math.random() - 0.5);
   currentIndex = 0;
   currentQuestion = questions[0] || null;
 }
 
-async function startGame(diff) {
+async function startGame() {
   score = 0; locked = false;
   gameState = 'loading';
   renderScreen();
@@ -292,28 +196,22 @@ async function startGame(diff) {
     const res = await fetch('/api/generate-infos');
     const data = await res.json();
     if (data.infos && data.infos.length > 0) {
-      VRAIES_INFOS = data.infos;
+      TOUTES_LES_INFOS = data.infos;
     } else {
       throw new Error('Pas d\'infos reçues');
     }
   } catch(e) {
-    alert('Erreur API : vérifie que ANTHROPIC_API_KEY est bien configurée sur Vercel.');
+    alert('Erreur API : Vérifie ta GEMINI_API_KEY sur Vercel.');
     gameState = 'start';
     renderScreen();
     return;
   }
 
-  generateQuestions(diff);
+  generateQuestions();
   gameState = 'playing';
   renderScreen();
 }
 
-/* ══════════════════════════════════════════
-   RÉPONSE — séquence complète
-   1. carte sort (gauche/droite)
-   2. même carte revient du haut AVEC feedback
-   3. prochaine carte arrive du haut
-══════════════════════════════════════════ */
 function handleAnswer(isVrai) {
   if (locked) return;
   locked = true;
@@ -321,26 +219,18 @@ function handleAnswer(isVrai) {
   const isCorrect = isVrai === currentQuestion.isTrue;
   if (isCorrect) score++;
 
-  // Met à jour le score affiché
   const sv = document.getElementById('score-val');
   if (sv) sv.textContent = score;
 
   const card = document.getElementById('card');
   if (!card) return;
 
-  // Reset inline style du drag
   card.style.transition = '';
-  card.style.transform  = '';
-
-  // 1. Animation de sortie
+  card.style.transform = '';
   card.classList.add(isVrai ? 'anim-exit-r' : 'anim-exit-l');
 
-  // 2. Après la sortie → carte feedback tombe du haut
-  setTimeout(() => {
-    showFeedbackCard(isCorrect);
-  }, 380);
+  setTimeout(() => { showFeedbackCard(isCorrect); }, 380);
 
-  // 3. Après lecture du feedback → carte suivante tombe du haut
   setTimeout(() => {
     if (currentIndex + 1 < questions.length) {
       currentIndex++;
@@ -351,25 +241,20 @@ function handleAnswer(isVrai) {
       gameState = 'result';
       renderScreen();
     }
-  }, 2700);
+  }, 2900); // Un peu plus de temps pour lire les explications "fourbes"
 }
 
 /* ══════════════════════════════════════════
-   RENDU DE LA CARTE DE JEU (interactive)
+   UI CARDS
 ══════════════════════════════════════════ */
 function cardFields(q) {
   return [
-    { icon:'❓', label:'QUOI',     val: q.what },
-    { icon:'👤', label:'QUI',      val: q.who  },
-    { icon:'📅', label:'QUAND',    val: q.when },
-    { icon:'📍', label:'OÙ',       val: q.where},
-    { icon:'🎯', label:'POURQUOI', val: q.why  },
+    { icon:'❓', label:'QUOI', val: q.what },
+    { icon:'👤', label:'QUI', val: q.who },
+    { icon:'📅', label:'QUAND', val: q.when },
+    { icon:'📍', label:'OÙ', val: q.where},
+    { icon:'🎯', label:'POURQUOI', val: q.why },
   ].map(f => `<div class="field"><div class="field-label">${f.icon} ${f.label}</div><div class="field-val">${f.val}</div></div>`).join('');
-}
-
-function sourceHTML(q) {
-  if (q.sourceUrl) return `<a href="${q.sourceUrl}" target="_blank" rel="noopener noreferrer">${q.source} ${icoExternal}</a>`;
-  return `<span class="source-text">${q.source}</span>`;
 }
 
 function showPlayCard() {
@@ -377,15 +262,13 @@ function showPlayCard() {
   if (!stage) return;
   const q = currentQuestion;
 
-  // Met à jour le compteur de question
   const qc = document.getElementById('q-counter');
   if (qc) qc.textContent = `Question ${currentIndex + 1}/5`;
 
-  // Active les boutons
   setButtons(false);
 
   stage.innerHTML = `
-    <div class="drag-label dleft"  id="dleft">❌ FAUX</div>
+    <div class="drag-label dleft" id="dleft">❌ FAUX</div>
     <div class="drag-label dright" id="dright">✅ VRAI</div>
     <div id="card" class="card grabbable anim-drop">
       ${q.image ? `<div class="card-img"><img src="${q.image}" alt="" onerror="this.parentElement.remove()"/></div>` : ''}
@@ -394,43 +277,31 @@ function showPlayCard() {
         ${cardFields(q)}
         <div class="source-block">
           <div class="source-label">🔗 SOURCE</div>
-          ${sourceHTML(q)}
+          <span class="source-text">${q.source}</span>
         </div>
-        <div class="swipe-hint">👈 FAUX &nbsp;·&nbsp; Swipe &nbsp;·&nbsp; VRAI 👉</div>
+        <div class="swipe-hint">👈 Swipe FAUX | Swipe VRAI 👉</div>
       </div>
     </div>`;
-
   bindDrag();
 }
 
-/* ══════════════════════════════════════════
-   RENDU DE LA CARTE FEEDBACK
-══════════════════════════════════════════ */
 function showFeedbackCard(isCorrect) {
   const stage = document.getElementById('card-stage');
   if (!stage) return;
   const q = currentQuestion;
-  const fb = isCorrect
-    ? { cls:'ok',  msg:'✓ Bien vu !' }
-    : { cls:'nok', msg:'✗ Incorrect !' };
+  const fb = isCorrect ? { cls:'ok', msg:'✓ Bien vu !' } : { cls:'nok', msg:'✗ Incorrect !' };
 
-  // Désactive les boutons pendant le feedback
   setButtons(true);
 
   stage.innerHTML = `
     <div id="card" class="card ${fb.cls} anim-drop" style="cursor:default;">
-      ${q.image ? `<div class="card-img"><img src="${q.image}" alt="" onerror="this.parentElement.remove()"/></div>` : ''}
       <div class="card-body">
-        <div class="label-tag">📰 INFORMATION À VÉRIFIER</div>
+        <div class="label-tag">VÉRIFICATION</div>
         ${cardFields(q)}
-        <div class="source-block">
-          <div class="source-label">🔗 SOURCE</div>
-          ${sourceHTML(q)}
-        </div>
         <div class="feedback-box ${fb.cls}">
           <div class="fb-msg">${fb.msg}</div>
           <div class="fb-truth">${q.truth}</div>
-          <div class="fb-src">Source : ${q.source}</div>
+          <div class="fb-src">Média : ${q.source}</div>
         </div>
       </div>
     </div>`;
@@ -444,117 +315,89 @@ function setButtons(disabled) {
 }
 
 /* ══════════════════════════════════════════
-   DRAG — souris & tactile
+   DRAG SYSTEM
 ══════════════════════════════════════════ */
 function bindDrag() {
   const card = document.getElementById('card');
   if (!card) return;
-  card.addEventListener('mousedown',  startDrag);
+  card.addEventListener('mousedown', startDrag);
   card.addEventListener('touchstart', startDrag, { passive: true });
 }
 
 function startDrag(e) {
   if (locked) return;
   isDragging = true;
-  dragX = 0;
   dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
   document.addEventListener('mousemove', moveDrag);
-  document.addEventListener('mouseup',   endDrag);
+  document.addEventListener('mouseup', endDrag);
   document.addEventListener('touchmove', moveDrag, { passive: false });
-  document.addEventListener('touchend',  endDrag);
+  document.addEventListener('touchend', endDrag);
 }
 
 function moveDrag(e) {
   if (!isDragging) return;
   const x = e.touches ? e.touches[0].clientX : e.clientX;
   dragX = x - dragStartX;
-
   const card = document.getElementById('card');
   if (!card) return;
-  const rot = dragX / 15;
-  card.style.transform  = `translateX(${dragX}px) rotate(${rot}deg)`;
+  card.style.transform = `translateX(${dragX}px) rotate(${dragX / 15}deg)`;
   card.style.transition = 'none';
 
-  // Labels
   const ratio = Math.min(Math.abs(dragX) / 100, 1);
-  const dl = document.getElementById('dleft');
-  const dr = document.getElementById('dright');
-  if (dl) dl.style.opacity = dragX < -15 ? ratio : 0;
-  if (dr) dr.style.opacity = dragX >  15 ? ratio : 0;
-
+  document.getElementById('dleft').style.opacity = dragX < -15 ? ratio : 0;
+  document.getElementById('dright').style.opacity = dragX > 15 ? ratio : 0;
   if (e.cancelable) e.preventDefault();
 }
 
-function endDrag(e) {
+function endDrag() {
   if (!isDragging) return;
   isDragging = false;
   document.removeEventListener('mousemove', moveDrag);
-  document.removeEventListener('mouseup',   endDrag);
-  document.removeEventListener('touchmove', moveDrag);
-  document.removeEventListener('touchend',  endDrag);
-
-  // Cacher les labels
-  const dl = document.getElementById('dleft');
-  const dr = document.getElementById('dright');
-  if (dl) dl.style.opacity = 0;
-  if (dr) dr.style.opacity = 0;
+  document.removeEventListener('mouseup', endDrag);
+  document.getElementById('dleft').style.opacity = 0;
+  document.getElementById('dright').style.opacity = 0;
 
   if (Math.abs(dragX) > 90) {
-    handleAnswer(dragX > 0); // droite = VRAI
+    handleAnswer(dragX > 0);
   } else {
-    // Retour en place
     const card = document.getElementById('card');
     if (card) {
       card.style.transition = 'transform 0.35s ease';
-      card.style.transform  = 'translateX(0) rotate(0deg)';
+      card.style.transform = 'translateX(0) rotate(0deg)';
     }
   }
 }
 
 /* ══════════════════════════════════════════
-   RENDU ÉCRANS PRINCIPAUX
+   SCREENS
 ══════════════════════════════════════════ */
 function renderScreen() {
   const app = document.getElementById('app');
 
-  /* CHARGEMENT */
   if (gameState === 'loading') {
-    app.innerHTML = `
-      <div style="text-align:center; color:white;">
-        <div style="font-size:2rem; font-weight:800; margin-bottom:1.5rem;">
-          🤖 Génération des infos...
-        </div>
-        <div style="display:flex; justify-content:center; gap:0.6rem;">
-          <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0s"></div>
-          <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.2s"></div>
-          <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.4s"></div>
-        </div>
-        <p style="margin-top:1.5rem; opacity:0.75; font-size:0.9rem;">Claude génère des vraies infos récentes…</p>
-      </div>`;
+    app.innerHTML = `<div style="text-align:center; color:white;">
+      <div style="font-size:2rem; font-weight:800; margin-bottom:1.5rem;">🤖 Gemini prépare les pièges...</div>
+      <div style="display:flex; justify-content:center; gap:0.6rem;">
+        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0s"></div>
+        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.2s"></div>
+        <div style="width:1rem;height:1rem;background:white;border-radius:50%;animation:bounce 0.8s infinite 0.4s"></div>
+      </div>
+    </div>`;
     return;
   }
 
-  /* ACCUEIL */
   if (gameState === 'start') {
     app.innerHTML = `
       <div class="screen-start">
         <div class="title">EMI QUEST</div>
-        <p class="subtitle">Détecte les infos vraies et fausses! 🔍</p>
+        <p class="subtitle">Saurez-vous démasquer Titouen Lia ? 🔍</p>
         <div class="btn-list">
-          <button class="btn-level" onclick="startGame('facile')">⭐ FACILE<div class="desc">Pour commencer</div></button>
-          <button class="btn-level" onclick="startGame('moyen')">🔥 MOYEN<div class="desc">Plus de nuance</div></button>
-          <button class="btn-level" onclick="startGame('difficile')">💀 DIFFICILE<div class="desc">Expert en EMI</div></button>
-        </div>
-        <div class="hint-box">
-          <p>👈 <strong>Swipe à GAUCHE</strong> = FAUX ❌</p>
-          <p>👉 <strong>Swipe à DROITE</strong> = VRAI ✅</p>
-          <p class="note">Ou utilise les boutons ❌ / ✅ en bas</p>
+          <button class="btn-level" onclick="startGame()">🚀 COMMENCER LE TEST<div class="desc">Infos réelles vs Fake News</div></button>
         </div>
       </div>`;
     return;
   }
 
-  /* JEU */
   if (gameState === 'playing') {
     app.innerHTML = `
       <div class="screen-play">
@@ -564,36 +407,20 @@ function renderScreen() {
         </div>
         <div id="card-stage" class="card-stage"></div>
         <div class="btn-row">
-          <div class="btn-wrap">
-            <div class="btn-arrow">👈</div>
-            <button id="btn-faux" class="btn-ans faux" onclick="handleAnswer(false)">❌ FAUX</button>
-          </div>
-          <div class="btn-wrap">
-            <button id="btn-vrai" class="btn-ans vrai" onclick="handleAnswer(true)">✅ VRAI</button>
-            <div class="btn-arrow">👉</div>
-          </div>
+          <button id="btn-faux" class="btn-ans faux" onclick="handleAnswer(false)">❌ FAUX</button>
+          <button id="btn-vrai" class="btn-ans vrai" onclick="handleAnswer(true)">✅ VRAI</button>
         </div>
       </div>`;
     showPlayCard();
     return;
   }
 
-  /* RÉSULTAT */
   if (gameState === 'result') {
-    const emoji = score >= 4 ? '🎉' : score >= 3 ? '😊' : '📚';
-    const msg   = score >= 4 ? 'Excellent ! Tu es un expert en EMI ! 🔥'
-                : score === 3 ? 'Bien joué ! Continue à vérifier ! 📖'
-                : score === 2 ? "Pas mal ! Travaille l'esprit critique ! 🧠"
-                : 'Fake news partout ! À revoir ! 📱';
     app.innerHTML = `
       <div class="screen-result">
-        <div class="result-emoji ${score >= 4 ? 'do-bounce' : ''}">${emoji}</div>
+        <div class="result-emoji">${score >= 4 ? '🔥' : '📚'}</div>
         <div class="result-score ${score >= 4 ? 'gold' : ''}">${score}/5</div>
-        <p class="result-msg">${msg}</p>
-        <div class="conseil-box">
-          <strong>💡 Conseil EMI :</strong>
-          <p>Cherche toujours sur les sources officielles : Figaro, France Info, Gouvernement (info.gouv.fr)…</p>
-        </div>
+        <p class="result-msg">Attention aux auteurs comme Titouen Lia !</p>
         <button class="btn-replay" onclick="gameState='start'; renderScreen();">${icoReplay} Rejouer</button>
       </div>`;
   }
