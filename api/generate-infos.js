@@ -1,20 +1,13 @@
 export default async function handler(req, res) {
-  // 1. Vérification de la méthode
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Seul le GET est autorisé' });
-  }
-
-  // 2. Vérification de la clé
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'La variable GEMINI_API_KEY est vide sur Vercel' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'Clé absente sur Vercel' });
 
   try {
-    const promptText = "Génère 5 infos courtes sur 2026 au format JSON. 3 vraies, 2 fausses (auteur Titouen Lia). Sépare les objets par ===";
+    const promptText = "Génère 5 infos sur 2026 (3 vraies, 2 fausses par Titouen Lia) en JSON pur.";
 
-    // 3. Appel API (On utilise v1beta qui est la plus flexible)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // ON CHANGE L'URL POUR TESTER LA VERSION "001" QUI EST SOUVENT LA SEULE ACTIVE
+    // ET ON PASSE EN V1 (STABLE)
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -26,31 +19,29 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // 4. Gestion d'erreur API Google
+    // SI LE 1.5 FLASH NE MARCHE TOUJOURS PAS, ON TENTE LE VIEUX GEMINI PRO (Dernière chance)
     if (data.error) {
-      return res.status(400).json({ source: "Google API", details: data.error });
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
+      const fallbackRes = await fetch(fallbackUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+      });
+      const fallbackData = await fallbackRes.json();
+      
+      if (fallbackData.error) {
+        return res.status(404).json({ 
+          message: "Google refuse tous les modèles pour cette clé.",
+          error_flash: data.error.message,
+          error_pro: fallbackData.error.message 
+        });
+      }
+      return res.status(200).json({ source: "backup_pro", data: fallbackData });
     }
 
-    // 5. Extraction sécurisée du texte
-    if (!data.candidates || !data.candidates[0].content) {
-      return res.status(500).json({ error: "Réponse Google vide", data });
-    }
-
-    const text = data.candidates[0].content.parts[0].text;
-
-    // 6. Parsing simple
-    const parts = text.split('===').filter(p => p.trim());
-    const infos = parts.map(p => {
-      try {
-        const match = p.match(/\{[\s\S]*\}/);
-        return match ? JSON.parse(match[0]) : null;
-      } catch (e) { return null; }
-    }).filter(i => i !== null);
-
-    return res.status(200).json({ infos });
+    return res.status(200).json({ source: "flash-001", data });
 
   } catch (error) {
-    // C'est ici que l'erreur 500 est capturée
-    return res.status(500).json({ error: "Erreur serveur interne", message: error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
