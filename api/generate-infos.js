@@ -16,8 +16,7 @@ export default async function handler(req, res) {
     Réponds uniquement en JSON pur, chaque info séparée par ===.
     Format : {"what":"","who":"","when":"","where":"","why":"","isTrue":true/false,"source":"","truth":""}`;
 
-    // CHANGEMENT ICI : On repasse en v1beta avec le nom de modèle simple
-    // C'est la route la plus compatible pour gemini-1.5-flash
+    // SOLUTION : Utilisation de v1beta avec gemini-1.5-flash (nom standard)
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
@@ -26,28 +25,30 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.9
+          temperature: 0.9,
+          topK: 1,
+          topP: 1
         }
       })
     });
 
     const data = await response.json();
 
+    // Gestion des erreurs spécifiques de Google
     if (data.error) {
       return res.status(data.error.code || 500).json({ 
-        error: "Erreur Google API", 
+        error: "Erreur API Google", 
         message: data.error.message 
       });
     }
 
-    if (!data.candidates || !data.candidates[0].content) {
-      return res.status(500).json({ error: "L'IA n'a pas renvoyé de contenu." });
+    if (!data.candidates || data.candidates.length === 0) {
+      return res.status(500).json({ error: "Aucun contenu généré par l'IA" });
     }
 
     const content = data.candidates[0].content.parts[0].text;
-    
-    // Découpage et nettoyage
     const rawInfos = content.split('===').map(q => q.trim()).filter(q => q);
+    
     const parsedInfos = rawInfos.map(info => {
       try {
         const jsonMatch = info.match(/\{[\s\S]*\}/);
