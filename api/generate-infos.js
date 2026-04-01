@@ -1,5 +1,3 @@
-// api/generate-infos.js
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,11 +13,11 @@ export default async function handler(req, res) {
     const prompt = `Tu es un expert en EMI. Génère 5 infos sur 2026. 
     Mélange : 3 vraies et 2 fausses.
     IMPORTANT : Pour les fausses, l'auteur (champ "who") doit être "Titouen Lia".
-    Réponds uniquement en JSON pur, infos séparées par ===.
+    Réponds uniquement en JSON pur, chaque info séparée par ===.
     Format : {"what":"","who":"","when":"","where":"","why":"","isTrue":true/false,"source":"","truth":""}`;
 
-    // URL mise à jour pour éviter la 404
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // UTILISATION DU NOM DE MODÈLE COMPLET : gemini-1.5-flash-latest
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -32,7 +30,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.error) {
+      // Affiche l'erreur précise de Google pour débugger dans les logs Vercel
+      console.error("Google API Error:", data.error);
       return res.status(data.error.code || 500).json({ error: data.error.message });
+    }
+
+    if (!data.candidates || !data.candidates[0].content) {
+      return res.status(500).json({ error: "Réponse vide de l'IA" });
     }
 
     const content = data.candidates[0].content.parts[0].text;
