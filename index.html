@@ -1,92 +1,495 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EMI QUEST - Gemini Edition</title>
-  <style>
-    /* Style simplifié pour l'exemple, garde ton CSS actuel ici */
-    body { font-family: sans-serif; background: #1a1a2e; color: white; display: flex; justify-content: center; padding: 20px; }
-    #app { max-width: 500px; width: 100%; text-align: center; }
-    .card { background: #16213e; border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px solid #0f3460; }
-    .btn-ans { padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; margin: 10px; }
-    .vrai { background: #4ade80; } .faux { background: #f87171; }
-    .loading { font-style: italic; opacity: 0.7; }
-  </style>
-</head>
-<body>
-  <div id="app">
-    <h1>EMI QUEST</h1>
-    <div id="game-container">
-      <p>Chargement du module de vérification...</p>
-    </div>
-  </div>
+import React, { useState, useRef, useEffect } from 'react';
+import { RotateCcw, TrendingUp, ChevronUp, ChevronDown } from 'lucide-react';
 
-<script>
-let questions = [];
-let currentIndex = 0;
-let score = 0;
+// ============================================
+// 📚 DOCUMENTATION RAPIDE
+// ============================================
+// Structure des infos:
+// - what: De quoi parle l'info?
+// - who: Qui dit cela / qui est concerné?
+// - when: Quand? (date/époque)
+// - where: Où? (lieu/endroit)
+// - why: Pourquoi? (contexte/raison)
+// - isTrue: true/false
+// - source: "nom.fr" (affiché dans la carte)
+// - image: URL d'une image (optionnel - laisse vide "" si pas d'image)
+//
+// 🖼️ EXEMPLES D'URLs D'IMAGES:
+// - Placeholder: "https://via.placeholder.com/400x300?text=SMIC"
+// - Picsum (random): "https://picsum.photos/400/300?random=1"
+// - Tes propres images: Upload sur Imgur
+//
+// - truth: Explication/correction de l'info si elle est fausse
+// ============================================
 
-async function initGame() {
-  const container = document.getElementById('game-container');
-  container.innerHTML = '<p class="loading">🤖 Gemini génère des pièges (Auteur : Titouen Lia)...</p>';
+// ============================================
+// 🔗 SOURCES FIABLES (À MODIFIER AVEC TES COLLÈGUES)
+// ============================================
+const SOURCES_FIABLES = [
+  "info.gouv.fr",
+  "gouvernement.fr",
+  "economie.gouv.fr",
+  "anses.fr",
+  "franceinfo.fr",
+  "francetv.fr",
+  "france2.fr",
+  "france3.fr",
+  "lemonde.fr",
+  "lefigaro.fr",
+  "bfmtv.com",
+  "europe1.fr",
+  "radiofrance.fr",
+  "senat.fr",
+  "assemblee-nationale.fr",
+  "has-sante.fr",
+  "sante.gouv.fr",
+  "education.gouv.fr"
+];
 
-  try {
-    const res = await fetch('/api/generate-infos');
-    const data = await res.json();
-    
-    if (data.infos) {
-      questions = data.infos;
-      showQuestion();
-    } else {
-      throw new Error("Erreur de données");
+// ============================================
+// 🎯 FAUSSES INFOS (À COMPLÉTER)
+// ============================================
+const FAUSSES_INFOS = [
+  {
+    what: "PLACEHOLDER 1 - À COMPLÉTER",
+    who: "??",
+    when: "??",
+    where: "??",
+    why: "??",
+    isTrue: false,
+    source: "À remplir",
+    sourceUrl: "",
+    image: "",
+    truth: "À remplir - explication de pourquoi c'est faux"
+  },
+  {
+    what: "PLACEHOLDER 2 - À COMPLÉTER",
+    who: "??",
+    when: "??",
+    where: "??",
+    why: "??",
+    isTrue: false,
+    source: "À remplir",
+    sourceUrl: "",
+    image: "",
+    truth: "À remplir - explication de pourquoi c'est faux"
+  },
+  {
+    what: "PLACEHOLDER 3 - À COMPLÉTER",
+    who: "??",
+    when: "??",
+    where: "??",
+    why: "??",
+    isTrue: false,
+    source: "À remplir",
+    sourceUrl: "",
+    image: "",
+    truth: "À remplir - explication de pourquoi c'est faux"
+  },
+  {
+    what: "PLACEHOLDER 4 - À COMPLÉTER",
+    who: "??",
+    when: "??",
+    where: "??",
+    why: "??",
+    isTrue: false,
+    source: "À remplir",
+    sourceUrl: "",
+    image: "",
+    truth: "À remplir - explication de pourquoi c'est faux"
+  },
+  {
+    what: "PLACEHOLDER 5 - À COMPLÉTER",
+    who: "??",
+    when: "??",
+    where: "??",
+    why: "??",
+    isTrue: false,
+    source: "À remplir",
+    sourceUrl: "",
+    image: "",
+    truth: "À remplir - explication de pourquoi c'est faux"
+  }
+];
+
+const EMIGame = () => {
+  const [gameState, setGameState] = useState('start');
+  const [difficulty, setDifficulty] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(0);
+  const [mouseStartY, setMouseStartY] = useState(0);
+  const [isMouseDragging, setIsMouseDragging] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [vraiInfos, setVraiInfos] = useState([]);
+  const cardRef = useRef(null);
+
+  // Générer les vraies infos via API
+  const fetchTrueInfos = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/generate-infos');
+      const data = await response.json();
+      
+      if (data.infos && data.infos.length > 0) {
+        setVraiInfos(data.infos);
+        return data.infos;
+      } else {
+        alert('Erreur: impossible de générer les infos');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching infos:', error);
+      alert('Erreur API. Vérife que l\'API key est configurée.');
+      return null;
+    } finally {
+      setLoading(false);
     }
-  } catch (e) {
-    container.innerHTML = `<p style="color:red">Erreur : Vérifie ta clé GEMINI_API_KEY sur Vercel.</p>`;
-  }
-}
+  };
 
-function showQuestion() {
-  const container = document.getElementById('game-container');
-  const q = questions[currentIndex];
+  // Générer les questions selon la difficulté
+  const generateQuestions = (vraiInfosData, diff) => {
+    if (!vraiInfosData || vraiInfosData.length === 0) {
+      alert('Pas d\'infos disponibles');
+      return;
+    }
 
-  container.innerHTML = `
-    <div class="card">
-      <h3>Question ${currentIndex + 1} / 5</h3>
-      <p><strong>QUOI :</strong> ${q.what}</p>
-      <p><strong>AUTEUR :</strong> ${q.who}</p>
-      <p><strong>OÙ :</strong> ${q.where}</p>
-      <p><em>Source : ${q.source}</em></p>
+    const shuffleArray = (arr) => [...arr].sort(() => Math.random() - 0.5);
+    
+    const shuffledVrai = shuffleArray(vraiInfosData);
+    const shuffledFaux = shuffleArray(FAUSSES_INFOS);
+
+    let selected = [];
+
+    if (diff === 'facile') {
+      selected = [...shuffledVrai.slice(0, 3), ...shuffledFaux.slice(0, 2)];
+    } else if (diff === 'moyen') {
+      selected = [...shuffledVrai.slice(0, 4), ...shuffledFaux.slice(0, 1)];
+    } else if (diff === 'difficile') {
+      selected = [...shuffledVrai.slice(0, 3), ...shuffledFaux.slice(0, 2)];
+    }
+
+    const finalShuffled = shuffleArray(selected).slice(0, 5);
+    setQuestions(finalShuffled);
+    setCurrentIndex(0);
+    if (finalShuffled.length > 0) {
+      setCurrentQuestion(finalShuffled[0]);
+    }
+  };
+
+  const startGame = async (diff) => {
+    setDifficulty(diff);
+    setGameState('playing');
+    setScore(0);
+    setLoading(true);
+    
+    const infos = await fetchTrueInfos();
+    if (infos) {
+      generateQuestions(infos, diff);
+    } else {
+      setGameState('start');
+    }
+  };
+
+  // SWIPE TACTILE
+  const handleTouchSwipe = (e) => {
+    if (!currentQuestion || feedback) return;
+    
+    const touchEndY = e.changedTouches[0].clientY;
+    const diff = touchStartY - touchEndY;
+    
+    if (Math.abs(diff) > 60) {
+      processAnswer(diff > 0); // true = vers le haut = VRAI
+    }
+  };
+
+  // SWIPE SOURIS
+  const handleMouseDown = (e) => {
+    setMouseStartY(e.clientY);
+    setIsMouseDragging(true);
+  };
+
+  const handleMouseUp = (e) => {
+    if (!isMouseDragging || !currentQuestion || feedback) {
+      setIsMouseDragging(false);
+      return;
+    }
+    
+    const diff = mouseStartY - e.clientY;
+    setIsMouseDragging(false);
+    
+    if (Math.abs(diff) > 60) {
+      processAnswer(diff > 0); // true = vers le haut = VRAI
+    }
+  };
+
+  // BOUTONS
+  const handleButtonAnswer = (isVrai) => {
+    processAnswer(isVrai);
+  };
+
+  // Traiter la réponse
+  const processAnswer = (userAnswer) => {
+    if (!currentQuestion || feedback) return;
+    
+    const isCorrect = userAnswer === currentQuestion.isTrue;
+    
+    setSwipeDirection(userAnswer ? 'up' : 'down');
+    setFeedback({
+      isCorrect,
+      message: isCorrect ? '✓ Bien vu!' : '✗ Incorrect!',
+      truth: currentQuestion.truth,
+      source: currentQuestion.source
+    });
+    
+    if (isCorrect) setScore(score + 1);
+    
+    setTimeout(() => {
+      if (currentIndex + 1 < questions.length) {
+        setCurrentIndex(currentIndex + 1);
+        setCurrentQuestion(questions[currentIndex + 1]);
+        setFeedback(null);
+        setSwipeDirection(null);
+      } else {
+        setGameState('result');
+      }
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center p-4 font-sans overflow-hidden">
+      {/* Décoration animée */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-60 h-60 bg-white opacity-5 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* ÉCRAN D'ACCUEIL */}
+      {gameState === 'start' && (
+        <div className="relative z-10 text-center">
+          <div className="mb-8 animate-bounce">
+            <div className="text-8xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white to-yellow-200">
+              EMI QUEST
+            </div>
+          </div>
+          <p className="text-white text-2xl mb-12 font-light">Détecte les infos vraies et fausses! 🔍</p>
+          
+          <div className="space-y-4 max-w-md mx-auto">
+            {[
+              { name: '⭐ FACILE', value: 'facile', desc: 'Pour commencer' },
+              { name: '🔥 MOYEN', value: 'moyen', desc: 'Plus de nuance' },
+              { name: '💀 DIFFICILE', value: 'difficile', desc: 'Expert en EMI' }
+            ].map(level => (
+              <button
+                key={level.value}
+                onClick={() => startGame(level.value)}
+                className="w-full py-4 px-6 bg-white text-purple-600 font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transform transition-all active:scale-95"
+              >
+                {level.name}
+                <div className="text-xs opacity-60 mt-1">{level.desc}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-12 text-white text-sm opacity-75 bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm max-w-md mx-auto">
+            <p className="mb-2">⬆️ <strong>Swipe vers le HAUT</strong> = VRAI ✅</p>
+            <p className="mb-4">⬇️ <strong>Swipe vers le BAS</strong> = FAUX ❌</p>
+            <p className="text-xs">Marche au tactile et à la souris! 🖱️</p>
+          </div>
+        </div>
+      )}
+
+      {/* ÉCRAN JEU */}
+      {gameState === 'playing' && currentQuestion && (
+        <div className="relative z-10 w-full max-w-2xl">
+          {/* Score bar */}
+          <div className="mb-6 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-3 flex items-center justify-between text-white font-bold">
+            <span>Question {currentIndex + 1}/5</span>
+            <div className="flex items-center gap-2">
+              <TrendingUp size={20} />
+              <span className="text-xl">{score}</span>
+            </div>
+          </div>
+
+          {/* Carte swipeable */}
+          <div
+            ref={cardRef}
+            onTouchStart={e => setTouchStartY(e.changedTouches[0].clientY)}
+            onTouchEnd={handleTouchSwipe}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={() => setIsMouseDragging(false)}
+            className={`bg-white rounded-3xl shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing transform transition-all duration-300 ${
+              swipeDirection === 'up' ? '-translate-y-96 -rotate-12 opacity-0' : ''
+            } ${
+              swipeDirection === 'down' ? 'translate-y-96 rotate-12 opacity-0' : ''
+            } ${
+              feedback?.isCorrect ? 'ring-4 ring-green-400' : feedback?.isCorrect === false ? 'ring-4 ring-red-400' : ''
+            }`}
+            style={{
+              minHeight: '680px',
+              backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              userSelect: 'none'
+            }}
+          >
+            <div className="text-white h-full flex flex-col">
+              {/* Image si elle existe */}
+              {currentQuestion.image && (
+                <div className="relative w-full h-48 overflow-hidden">
+                  <img 
+                    src={currentQuestion.image} 
+                    alt="Info illustration"
+                    className="w-full h-full object-cover"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-purple-900"></div>
+                </div>
+              )}
+
+              {/* Contenu */}
+              <div className="p-8 flex flex-col justify-between flex-1">
+                {/* Les 5 W */}
+                <div className="space-y-4">
+                  <div className="text-xs opacity-75 font-bold tracking-widest">📰 INFORMATION À VÉRIFIER</div>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { icon: '❓', label: 'QUOI', value: currentQuestion.what },
+                      { icon: '👤', label: 'QUI', value: currentQuestion.who },
+                      { icon: '📅', label: 'QUAND', value: currentQuestion.when },
+                      { icon: '📍', label: 'OÙ', value: currentQuestion.where },
+                      { icon: '🎯', label: 'POURQUOI', value: currentQuestion.why }
+                    ].map((w, i) => (
+                      <div key={i} className="bg-white bg-opacity-20 rounded-xl p-3 backdrop-blur-sm border border-white border-opacity-30">
+                        <div className="text-xs opacity-80 font-bold mb-1">{w.icon} {w.label}</div>
+                        <div className="text-sm font-semibold leading-tight">{w.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Source */}
+                  <div className="mt-4 pt-4 border-t border-white border-opacity-30">
+                    <div className="text-xs opacity-75 font-bold mb-1">🔗 SOURCE</div>
+                    <div className="text-sm font-semibold text-yellow-200">{currentQuestion.source}</div>
+                  </div>
+                </div>
+
+                {/* Feedback */}
+                {feedback && (
+                  <div className={`mt-6 p-4 rounded-xl text-center font-bold text-sm backdrop-blur-sm border border-white border-opacity-30 ${
+                    feedback.isCorrect
+                      ? 'bg-green-500 bg-opacity-30 text-green-100'
+                      : 'bg-red-500 bg-opacity-30 text-red-100'
+                  }`}>
+                    <div className="text-base mb-2">{feedback.message}</div>
+                    <div className="opacity-85 leading-snug text-xs">{feedback.truth}</div>
+                    {feedback.source && (
+                      <div className="text-xs opacity-70 mt-2">Source: {feedback.source}</div>
+                    )}
+                  </div>
+                )}
+
+                {!feedback && (
+                  <div className="mt-6 text-center text-xs opacity-75 animate-pulse">
+                    ⬆️ Swipe ou clique les boutons ⬇️
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Boutons (alternative au swipe) */}
+          {!feedback && (
+            <div className="mt-8 flex gap-4 px-4">
+              <button
+                onClick={() => handleButtonAnswer(false)}
+                className="flex-1 py-4 px-6 bg-red-500 hover:bg-red-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transform transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <ChevronDown size={24} />
+                FAUX ❌
+              </button>
+              <button
+                onClick={() => handleButtonAnswer(true)}
+                className="flex-1 py-4 px-6 bg-green-500 hover:bg-green-600 text-white font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transform transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <ChevronUp size={24} />
+                VRAI ✅
+              </button>
+            </div>
+          )}
+
+          {/* Indicateurs swipe */}
+          <div className="mt-8 text-center space-y-4 px-4">
+            <div className="text-white font-bold text-2xl">⬆️</div>
+            <div className="text-white font-bold text-lg">✅ VRAI</div>
+            <div className="text-white text-xs opacity-60">—</div>
+            <div className="text-white font-bold text-lg">❌ FAUX</div>
+            <div className="text-white font-bold text-2xl">⬇️</div>
+          </div>
+        </div>
+      )}
+
+      {/* ÉCRAN RÉSULTAT */}
+      {gameState === 'result' && (
+        <div className="relative z-10 text-center">
+          <div className="mb-8">
+            <div className={`text-8xl font-black mb-4 ${
+              score >= 4 ? 'animate-bounce' : ''
+            }`}>
+              {score >= 4 ? '🎉' : score >= 3 ? '😊' : '📚'}
+            </div>
+            <div className={`text-7xl font-black bg-clip-text text-transparent mb-4 ${
+              score >= 4
+                ? 'bg-gradient-to-r from-yellow-200 to-yellow-500'
+                : 'bg-gradient-to-r from-white to-gray-300'
+            }`}>
+              {score}/5
+            </div>
+          </div>
+
+          <p className="text-white text-2xl mb-6 font-light max-w-md mx-auto">
+            {score >= 4 && 'Excellent! Tu es un vrai détecteur de fake news! 🔥'}
+            {score === 3 && 'Bien joué! Continue à vérifier tes sources! 📖'}
+            {score === 2 && 'Pas mal! Travaille ton esprit critique! 🧠'}
+            {score <= 1 && 'À travailler! Les fake news sont partout! 📱'}
+          </p>
+
+          <div className="bg-white bg-opacity-10 rounded-2xl p-6 mb-8 max-w-md mx-auto text-white text-sm backdrop-blur-sm">
+            <p className="font-bold mb-2">💡 Conseil EMI:</p>
+            <p className="opacity-75">Vérifie toujours tes sources! Cherche sur les sites officiels, les médias de référence (Figaro, France Info, gouvernement).</p>
+          </div>
+
+          <button
+            onClick={() => setGameState('start')}
+            className="flex items-center gap-3 mx-auto px-8 py-4 bg-white text-purple-600 font-bold text-lg rounded-2xl shadow-2xl hover:scale-105 transform transition-all active:scale-95"
+          >
+            <RotateCcw size={24} />
+            Rejouer
+          </button>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="relative z-20 text-center">
+          <div className="text-white text-3xl font-bold mb-4">Génération des infos récentes...</div>
+          <div className="flex justify-center gap-2">
+            {[0, 1, 2].map(i => (
+              <div
+                key={i}
+                className="w-4 h-4 bg-white rounded-full animate-bounce"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              ></div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-    <button class="btn-ans vrai" onclick="check(true)">VRAI</button>
-    <button class="btn-ans faux" onclick="check(false)">FAUX</button>
-  `;
-}
+  );
+};
 
-function check(answer) {
-  const q = questions[currentIndex];
-  const correct = (answer === q.isTrue);
-  if (correct) score++;
-
-  alert(correct ? "✅ Bien joué !" : `❌ Piégé ! \n${q.truth}`);
-
-  currentIndex++;
-  if (currentIndex < questions.length) {
-    showQuestion();
-  } else {
-    showResult();
-  }
-}
-
-function showResult() {
-  document.getElementById('game-container').innerHTML = `
-    <h2>Terminé !</h2>
-    <p style="font-size: 2rem;">Score : ${score} / 5</p>
-    <button onclick="location.reload()" class="btn-ans">Rejouer</button>
-  `;
-}
-
-initGame();
-</script>
-</body>
-</html>
+export default EMIGame;
