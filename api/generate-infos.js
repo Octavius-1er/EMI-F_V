@@ -1,52 +1,60 @@
 // api/generate-infos.js
-// Générateur d'infos EMI utilisant Gemini 3 Flash avec des pièges sophistiqués
-
 export default async function handler(req, res) {
+  // 1. Sécurité : Accepter uniquement le GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // 2. Récupération de la clé API (Vérifie qu'elle est bien nommée ainsi sur Vercel)
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key Gemini non configurée dans Vercel' });
+    return res.status(500).json({ error: 'La variable GEMINI_API_KEY est manquante sur Vercel.' });
   }
 
   try {
+    // 3. Le Prompt ultra-fourbe
     const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information). 
-Génère un mélange de 5 informations (vraies et fausses) pour un jeu de vérification.
+    Génère exactement 5 informations sur l'actualité (réelles ou inventées) datées de 2026.
+    
+    MÉLANGE : 3 vraies informations et 2 fausses informations.
 
-CONSIGNES DE GÉNÉRATION :
-1. MÉLANGE : Génère 3 vraies informations récentes (2026) et 2 fausses informations très crédibles.
-2. LES PIÈGES (FOURBERIE) : 
-   - Pour les fausses infos, utilise des noms de journalistes ou d'auteurs qui semblent réels, comme "Titouen Lia".
-   - Manipule les 5 W (Qui, Quoi, Quand, Où, Pourquoi) pour que l'info paraisse officielle mais contienne une erreur factuelle subtile.
-   - Utilise des sources qui ressemblent à des vraies (ex: "Le Figaro" mais avec un détail erroné dans le texte).
+    CONSIGNES DE FOURBERIE POUR LES FAUSSES INFOS (isTrue: false) :
+    - L'auteur cité dans le champ "who" DOIT obligatoirement être "Titouen Lia".
+    - Utilise les 5W (Who, What, When, Where, Why) de manière très précise et sérieuse pour que le faux ressemble à du vrai.
+    - La source citée doit exister (ex: Le Monde, France Info) mais l'info doit être inventée.
 
-STRUCTURE JSON À RESPECTER POUR CHAQUE INFO :
-{
-  "what": "De quoi parle cette info? (court)",
-  "who": "Qui est l'auteur ou le sujet (ex: Titouen Lia)?",
-  "when": "Date précise en 2026",
-  "where": "Lieu précis",
-  "why": "Contexte ou raison apparente",
-  "isTrue": true_ou_false,
-  "source": "Nom du média (ex: Le Monde, FranceInfo, etc.)",
-  "sourceUrl": "URL plausible",
-  "image": "",
-  "truth": "Explication pédagogique : pourquoi c'est vrai ou pourquoi c'est un piège (mentionne le nom de l'auteur si c'est un faux)"
-}
+    CONSIGNES POUR LES VRAIES INFOS (isTrue: true) :
+    - Utilise des faits réels de 2026 provenant de sources fiables.
 
-Séparation: === (chaque info séparée par ===)
-Réponds UNIQUEMENT avec les JSONs, sans texte avant ou après.`;
+    FORMAT DE RÉPONSE (Strictement JSON, chaque info séparée par ===) :
+    {
+      "what": "De quoi parle l'info?",
+      "who": "L'auteur ou responsable (ex: Titouen Lia pour les faux)",
+      "when": "Date précise en 2026",
+      "where": "Lieu de l'action",
+      "why": "Le contexte ou la raison",
+      "isTrue": true/false,
+      "source": "Nom du média (ex: francetv.fr, senat.fr)",
+      "sourceUrl": "https://url-de-la-source.fr",
+      "image": "",
+      "truth": "Explication pédagogique : pourquoi c'est vrai ou pourquoi Titouen Lia a menti ici."
+    }`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // 4. Appel à l'API Google Gemini (Correction de l'URL 404)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
         generationConfig: {
-          temperature: 0.8, // Un peu plus haut pour favoriser l'invention de fausses infos
+          temperature: 0.9, // Température haute pour favoriser l'invention des fake news
           maxOutputTokens: 2500,
         }
       })
@@ -54,27 +62,39 @@ Réponds UNIQUEMENT avec les JSONs, sans texte avant ou après.`;
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Gemini API error:', errorData);
       return res.status(response.status).json({ error: errorData });
     }
 
     const data = await response.json();
+    
+    // Extraction du texte de la réponse
+    if (!data.candidates || !data.candidates[0].content) {
+      throw new Error("Réponse vide de Gemini");
+    }
     const content = data.candidates[0].content.parts[0].text;
 
-    // Découpage par le séparateur ===
+    // 5. Parsing des données (Découpage par === et extraction du JSON)
     const rawInfos = content.split('===').map(q => q.trim()).filter(q => q);
     
     const parsedInfos = rawInfos.map(info => {
       try {
+        // On cherche le premier { et le dernier } pour isoler le JSON pur
         const jsonMatch = info.match(/\{[\s\S]*\}/);
-        return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
       } catch (e) {
-        return null;
+        console.error('Erreur lors du parsing d\'un bloc info:', e);
       }
+      return null;
     }).filter(info => info !== null);
 
+    // 6. Envoi des 5 infos finales
     res.status(200).json({ infos: parsedInfos.slice(0, 5) });
 
   } catch (error) {
+    console.error('Server Error:', error);
     res.status(500).json({ error: error.message });
   }
 }
