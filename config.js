@@ -1,3 +1,3 @@
 const CONFIG = {
-  GROQ_API_KEY: 'mets_ta_clé_groq_ici'
+  GROQ_API_KEY: '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'
 };
