@@ -492,27 +492,32 @@ function showScreen(name) {
 }
 
 // ── GROQ API ─────────────────────────────────────────────────────────
-async function fetchTrueInfos() {
+async function fetchAllInfos(nbVrai, nbFaux) {
   const GROQ_API_KEY = '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'; // ← mets ta clé ici
 
-  const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information).
-Génère exactement 5 vraies informations RÉCENTES (2025-2026) provenant de sources fiables françaises.
+  const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information) chargé de créer un quiz pédagogique pour des lycéens français.
 
-Pour chaque info, fournis UNE structure JSON valide:
+Génère exactement ${nbVrai} VRAIES infos et ${nbFaux} FAUSSES infos récentes (2024-2026).
+
+RÈGLE CRITIQUE POUR LES FAUSSES INFOS : elles doivent être TRÈS FOURBES.
+Prends une vraie info récente (vrai média, vrai journaliste, vraie date, vrai lieu) et change SEULEMENT UN SEUL des 5W pour le rendre faux.
+Exemples : un chiffre légèrement modifié, un lieu changé, une date décalée, un nom de personne inventé mais crédible, une cause inventée.
+Les 4 autres W doivent être VRAIS et vérifiables. C'est ce qui les rend difficiles à détecter.
+
+Pour chaque info, fournis ce JSON :
 {
-  "what": "De quoi parle cette info? (court)",
-  "who": "Qui dit cela / qui est concerné?",
-  "when": "Quand? (date précise si possible)",
-  "where": "Où? (lieu/endroit)",
-  "why": "Pourquoi? (contexte/raison)",
-  "isTrue": true,
-  "source": "Nom du site/média (ex: francetv.fr)",
-  "truth": "Confirme pourquoi c'est vrai et comment vérifier"
+  "what": "De quoi parle cette info (court et précis)",
+  "who": "Qui est concerné / qui dit cela",
+  "when": "Quand (date précise)",
+  "where": "Où (lieu précis)",
+  "why": "Pourquoi / contexte",
+  "isTrue": true ou false,
+  "source": "nom-du-vrai-media.fr",
+  "truth": "Pour les vraies : confirme et explique comment vérifier. Pour les fausses : révèle QUEL W est faux et quelle est la vraie valeur."
 }
 
-Séparation: === (chaque info séparée par ===)
-Sources à privilégier: info.gouv.fr, gouvernement.fr, franceinfo.fr, lemonde.fr, lefigaro.fr, bfmtv.com
-Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
+Séparation entre chaque info : ===
+Réponds UNIQUEMENT avec les JSONs séparés par ===, sans texte avant ou après.`;
 
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -523,7 +528,7 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7
+      temperature: 0.8
     })
   });
 
@@ -542,9 +547,8 @@ Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
   }).filter(Boolean);
 
   if (parsed.length === 0) throw new Error('Impossible de lire la réponse de Groq.');
-  return parsed.slice(0, 5);
+  return parsed;
 }
-
 // ── GAME LOGIC ────────────────────────────────────────────────────────
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -555,17 +559,14 @@ async function startGame(diff) {
   hasFeedback = false;
   showScreen('loading');
 
+  let nbVrai, nbFaux;
+  if (diff === 'facile')    { nbVrai = 4; nbFaux = 1; }
+  if (diff === 'moyen')     { nbVrai = 3; nbFaux = 2; }
+  if (diff === 'difficile') { nbVrai = 2; nbFaux = 3; }
+
   try {
-    const trueInfos = await fetchTrueInfos();
-    const vrai = shuffle(trueInfos);
-    const faux = shuffle(FAUSSES_INFOS);
-
-    let selected;
-    if (diff === 'facile')    selected = [...vrai.slice(0,4), ...faux.slice(0,1)];
-    if (diff === 'moyen')     selected = [...vrai.slice(0,3), ...faux.slice(0,2)];
-    if (diff === 'difficile') selected = [...vrai.slice(0,2), ...faux.slice(0,3)];
-
-    questions = shuffle(selected).slice(0, 5);
+    const allInfos = await fetchAllInfos(nbVrai, nbFaux);
+    questions = shuffle(allInfos).slice(0, 5);
     showScreen('playing');
     renderQuestion();
   } catch (err) {
