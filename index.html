@@ -330,13 +330,13 @@
     <div class="start-sub">Vrai ou Faux ? Détecte la désinformation.</div>
 
     <button class="diff-btn" onclick="startGame('facile')">
-      ⭐ Facile <small>4 vraies · 1 fausse</small>
+      ⭐ Facile
     </button>
     <button class="diff-btn" onclick="startGame('moyen')">
-      🔥 Moyen <small>3 vraies · 2 fausses</small>
+      🔥 Moyen
     </button>
     <button class="diff-btn" onclick="startGame('difficile')">
-      💀 Difficile <small>2 vraies · 3 fausses subtiles</small>
+      💀 Difficile
     </button>
 
     <div class="how-to">
@@ -561,9 +561,9 @@ async function startGame(diff) {
   showScreen('loading');
 
   let nbVrai, nbFaux;
-  if (diff === 'facile')    { nbVrai = 4; nbFaux = 1; }
+  if (diff === 'facile')    { nbVrai = 1; nbFaux = 4; }
   if (diff === 'moyen')     { nbVrai = 3; nbFaux = 2; }
-  if (diff === 'difficile') { nbVrai = 2; nbFaux = 3; }
+  if (diff === 'difficile') { nbVrai = 4; nbFaux = 1; }
 
   try {
     const allInfos = await fetchAllInfos(nbVrai, nbFaux);
