@@ -491,9 +491,9 @@ function showScreen(name) {
   document.getElementById('screen-' + name).classList.add('active');
 }
 
-// ── GEMINI API ────────────────────────────────────────────────────────
+// ── GROQ API ─────────────────────────────────────────────────────────
 async function fetchTrueInfos() {
-  const GEMINI_API_KEY = 'AIzaSyDCw1nuXge8ZwVPHNI_a_Vb68BfoTYSGPk'; // ← mets ta clé ici
+  const GROQ_API_KEY = 'REMPLACE_PAR_TA_CLÉ_GROQ'; // ← mets ta clé ici
 
   const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information).
 Génère exactement 5 vraies informations RÉCENTES (2025-2026) provenant de sources fiables françaises.
@@ -514,30 +514,34 @@ Séparation: === (chaque info séparée par ===)
 Sources à privilégier: info.gouv.fr, gouvernement.fr, franceinfo.fr, lemonde.fr, lefigaro.fr, bfmtv.com
 Réponds UNIQUEMENT avec les JSONs séparés par ===, sans autre texte.`;
 
-  const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    }
-  );
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + GROQ_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7
+    })
+  });
 
   if (!resp.ok) {
     const status = resp.status;
-    if (status === 400) throw new Error('Clé API Gemini invalide. Remplace REMPLACE_PAR_TA_CLÉ_GEMINI dans index.html.');
-    if (status === 429) throw new Error('Quota Gemini dépassé. Attends quelques minutes.');
-    throw new Error('Erreur Gemini ' + status);
+    if (status === 401) throw new Error('Clé API Groq invalide. Remplace REMPLACE_PAR_TA_CLÉ_GROQ dans index.html.');
+    if (status === 429) throw new Error('Quota Groq dépassé. Attends quelques secondes et réessaie.');
+    throw new Error('Erreur Groq ' + status);
   }
 
   const data = await resp.json();
-  const text = data.candidates[0].content.parts[0].text;
+  const text = data.choices[0].message.content;
   const parts = text.split('===').map(s => s.trim()).filter(Boolean);
   const parsed = parts.map(p => {
     try { return JSON.parse(p.match(/\{[\s\S]*\}/)[0]); } catch { return null; }
   }).filter(Boolean);
 
-  if (parsed.length === 0) throw new Error('Impossible de lire la réponse de Gemini.');
+  if (parsed.length === 0) throw new Error('Impossible de lire la réponse de Groq.');
   return parsed.slice(0, 5);
 }
 
