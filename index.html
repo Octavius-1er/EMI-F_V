@@ -314,6 +314,7 @@
       cursor: pointer;
     }
   </style>
+  <script src="config.js"></script>
 </head>
 <body>
 
@@ -493,7 +494,7 @@ function showScreen(name) {
 
 // ── GROQ API ─────────────────────────────────────────────────────────
 async function fetchAllInfos(nbVrai, nbFaux) {
-  const GROQ_API_KEY = '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'; // ← mets ta clé ici
+  const GROQ_API_KEY = CONFIG.GROQ_API_KEY;
 
   const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information) chargé de créer un quiz pédagogique pour des lycéens français.
 
