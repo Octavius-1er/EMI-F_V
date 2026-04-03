@@ -578,21 +578,25 @@ async function fetchAllInfos(nbVrai, nbFaux, diff) {
 // ── GAME LOGIC ────────────────────────────────────────────────────────
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
-async function startGame(diff) {
+function chooseDiff(diff) {
   difficulty = diff;
+  showScreen('nb');
+}
+
+async function startGame(nb) {
+  nbQuestions = nb;
   score = 0;
   currentIndex = 0;
   hasFeedback = false;
   showScreen('loading');
 
-  let nbVrai, nbFaux;
-  if (diff === 'facile')    { nbVrai = 1; nbFaux = 4; }
-  if (diff === 'moyen')     { nbVrai = 3; nbFaux = 2; }
-  if (diff === 'difficile') { nbVrai = 4; nbFaux = 1; }
+  const ratioFaux = { facile: 0.8, moyen: 0.4, difficile: 0.2 }[difficulty];
+  const nbFaux = Math.round(nb * ratioFaux);
+  const nbVrai = nb - nbFaux;
 
   try {
-    const allInfos = await fetchAllInfos(nbVrai, nbFaux, diff);
-    questions = shuffle(allInfos).slice(0, 5);
+    const allInfos = await fetchAllInfos(nbVrai, nbFaux, difficulty);
+    questions = shuffle(allInfos).slice(0, nb);
     showScreen('playing');
     renderQuestion();
   } catch (err) {
