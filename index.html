@@ -590,7 +590,7 @@ async function startGame(nb) {
   hasFeedback = false;
   showScreen('loading');
 
-  const ratioFaux = { facile: 0.8, moyen: 0.4, difficile: 0.2 }[difficulty];
+  const ratioFaux = { facile: 0.2, moyen: 0.4, difficile: 0.8 }[difficulty];
   const nbFaux = Math.round(nb * ratioFaux);
   const nbVrai = nb - nbFaux;
 
