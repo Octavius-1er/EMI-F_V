@@ -525,34 +525,14 @@ async function fetchAllInfos(nbVrai, nbFaux, diff) {
   const GROQ_API_KEY = CONFIG.GROQ_API_KEY;
 
   const diffRules = {
-    facile: "REGLE POUR LES FAUSSES (mode FACILE) : elles doivent etre TOTALEMENT inventees et evidentes a reperer. Invente des faits absurdes ou exageres. La source doit etre le-fugaro.vercel.app pour TOUTES les fausses infos de ce mode. Exemples : Le gouvernement rend les devoirs illegaux, La Tour Eiffel deplacee a Marseille, Le bac supprime des 2025.",
-    moyen: "REGLE POUR LES FAUSSES (mode MOYEN) : prends une vraie info recente et change EXACTEMENT 3 des 5W pour les rendre faux. Les 2 W restants doivent etre vrais. Source : un vrai media francais (lemonde.fr, bfmtv.com, etc.).",
-    difficile: "REGLE POUR LES FAUSSES (mode DIFFICILE) : prends une vraie info recente (vrai media, vrai journaliste, vraie date, vrai lieu) et change SEULEMENT 1 SEUL W. Les 4 autres W doivent etre VRAIS et verifiables. Tres difficile a detecter. Source : un vrai media francais."
+    facile: "REGLE FAUSSES FACILE: infos TOTALEMENT inventees, absurdes, evidentes. Source = le-fugaro.vercel.app pour toutes les fausses.",
+    moyen: "REGLE FAUSSES MOYEN: prends une vraie info recente, change 3 des 5W. Les 2 autres W restent vrais. Source = vrai media francais.",
+    difficile: "REGLE FAUSSES DIFFICILE: prends une vraie info recente, change SEULEMENT 1 W. Les 4 autres sont vrais. Tres subtil. Source = vrai media francais."
   };
 
-  const prompt = "Tu es un expert en EMI (Education aux Medias et a l Information) charge de creer un quiz pedagogique pour des lyceens francais.
+  const jsonSchema = '{"what":"...","who":"...","when":"...","where":"...","why":"...","isTrue":true,"source":"media.fr","sourceUrl":"https://...","truth":"..."}';
 
-"
-    + "Genere exactement " + nbVrai + " VRAIES infos et " + nbFaux + " FAUSSES infos recentes (2024-2026).
-
-"
-    + diffRules[diff] + "
-
-"
-    + "Pour chaque info, fournis ce JSON :\n"
-    + "{\n"
-    + '  "what": "De quoi parle cette info (court et precis)",\n'
-    + '  "who": "Qui est concerne / qui dit cela",\n'
-    + '  "when": "Quand (date precise)",\n'
-    + '  "where": "Ou (lieu precis)",\n'
-    + '  "why": "Pourquoi / contexte",\n'
-    + '  "isTrue": true ou false,\n'
-    + '  "source": "nom-du-media.fr",\n'
-    + '  "sourceUrl": "https://url-complete-si-possible-sinon-vide",\n'
-    + '  "truth": "Pour les vraies : confirme et explique comment verifier. Pour les fausses : revele QUELS W sont faux et quelle est la vraie valeur."\n'
-    + "}\n\n"
-    + "Separation entre chaque info : ===\n"
-    + "Reponds UNIQUEMENT avec les JSONs separes par ===, sans texte avant ou apres.";
+  const prompt = "Tu es un expert EMI. Genere " + nbVrai + " VRAIES infos et " + nbFaux + " FAUSSES infos recentes (2024-2026). " + diffRules[diff] + " Pour chaque info fournis exactement ce JSON : " + jsonSchema + " Separe chaque info par === . Reponds UNIQUEMENT avec les JSONs separes par ===.";
 
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -569,8 +549,8 @@ async function fetchAllInfos(nbVrai, nbFaux, diff) {
 
   if (!resp.ok) {
     const status = resp.status;
-    if (status === 401) throw new Error('Cle API Groq invalide. Remplace la cle dans config.js.');
-    if (status === 429) throw new Error('Quota Groq depasse. Attends quelques secondes et reessaie.');
+    if (status === 401) throw new Error('Cle API Groq invalide. Verifie config.js.');
+    if (status === 429) throw new Error('Quota Groq depasse. Attends quelques secondes.');
     throw new Error('Erreur Groq ' + status);
   }
 
@@ -578,7 +558,7 @@ async function fetchAllInfos(nbVrai, nbFaux, diff) {
   const text = data.choices[0].message.content;
   const parts = text.split('===').map(s => s.trim()).filter(Boolean);
   const parsed = parts.map(p => {
-    try { return JSON.parse(p.match(/\{[\s\S]*\}/)[0]); } catch { return null; }
+    try { return JSON.parse(p.match(/\{[\s\S]*?\}/)[0]); } catch { return null; }
   }).filter(Boolean);
 
   if (parsed.length === 0) throw new Error('Impossible de lire la reponse de Groq.');
