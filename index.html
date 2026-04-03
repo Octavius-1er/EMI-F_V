@@ -606,7 +606,7 @@ function renderQuestion() {
   // QR code via API gratuite
   const qrContainer = document.getElementById('qr-container');
   const url = q.sourceUrl && q.sourceUrl.startsWith('http') ? q.sourceUrl : 'https://' + q.source;
-  qrContainer.innerHTML = \`<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=\${encodeURIComponent(url)}&bgcolor=1e1e45&color=ffffff&qzone=1" alt="QR source" style="border-radius:6px;width:80px;height:80px">\`;
+  qrContainer.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent(url) + '&bgcolor=1e1e45&color=ffffff&qzone=1" alt="QR source" style="border-radius:6px;width:80px;height:80px">';
 
   const card = document.getElementById('card');
   card.classList.remove('exit-up','exit-down','correct','wrong');
