@@ -409,9 +409,13 @@
       <div class="w-row"><div class="w-label">📅 QUAND</div><div class="w-value" id="w-when"></div></div>
       <div class="w-row"><div class="w-label">📍 OÙ</div><div class="w-value" id="w-where"></div></div>
       <div class="w-row"><div class="w-label">🎯 POURQUOI</div><div class="w-value" id="w-why"></div></div>
-      <div class="source-row">
-        <div class="source-label">🔗 SOURCE</div>
-        <div class="source-value" id="w-source"></div>
+      <div class="source-row" style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="source-label">🔗 SOURCE</div>
+          <div class="source-value" id="w-source"></div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:3px">Scanner pour vérifier</div>
+        </div>
+        <div id="qr-container"></div>
       </div>
       <div id="feedback-box" style="display:none" class="feedback-box">
         <div class="feedback-title" id="feedback-title"></div>
@@ -517,17 +521,24 @@ function showScreen(name) {
 }
 
 // ── GROQ API ─────────────────────────────────────────────────────────
-async function fetchAllInfos(nbVrai, nbFaux) {
+async function fetchAllInfos(nbVrai, nbFaux, diff) {
   const GROQ_API_KEY = CONFIG.GROQ_API_KEY;
 
-  const prompt = `Tu es un expert en EMI (Éducation aux Médias et à l'Information) chargé de créer un quiz pédagogique pour des lycéens français.
+  const diffRules = {
+    facile: `RÈGLE POUR LES FAUSSES (mode FACILE) : elles doivent être TOTALEMENT inventées et évidentes à repérer.
+Invente des faits absurdes ou exagérés. La source doit être "le-fugaro.vercel.app" pour TOUTES les fausses infos de ce mode.
+Exemples : "Le gouvernement rend les devoirs illégaux", "La Tour Eiffel déplacée à Marseille", "Le bac supprimé dès 2025".`,
+    moyen: `RÈGLE POUR LES FAUSSES (mode MOYEN) : prends une vraie info récente et change EXACTEMENT 3 des 5W pour les rendre faux.
+Les 2 W restants doivent être vrais. Source : un vrai média français (lemonde.fr, bfmtv.com, etc.).`,
+    difficile: `RÈGLE POUR LES FAUSSES (mode DIFFICILE) : prends une vraie info récente (vrai média, vrai journaliste, vraie date, vrai lieu) et change SEULEMENT 1 SEUL W.
+Les 4 autres W doivent être VRAIS et vérifiables. Très difficile à détecter. Source : un vrai média français.`
+  };
 
-Génère exactement ${nbVrai} VRAIES infos et ${nbFaux} FAUSSES infos récentes (2024-2026).
+  const prompt = \`Tu es un expert en EMI (Éducation aux Médias et à l'Information) chargé de créer un quiz pédagogique pour des lycéens français.
 
-RÈGLE CRITIQUE POUR LES FAUSSES INFOS : elles doivent être TRÈS FOURBES.
-Prends une vraie info récente (vrai média, vrai journaliste, vraie date, vrai lieu) et change SEULEMENT UN SEUL des 5W pour le rendre faux.
-Exemples : un chiffre légèrement modifié, un lieu changé, une date décalée, un nom de personne inventé mais crédible, une cause inventée.
-Les 4 autres W doivent être VRAIS et vérifiables. C'est ce qui les rend difficiles à détecter.
+Génère exactement \${nbVrai} VRAIES infos et \${nbFaux} FAUSSES infos récentes (2024-2026).
+
+\${diffRules[diff]}
 
 Pour chaque info, fournis ce JSON :
 {
@@ -537,12 +548,13 @@ Pour chaque info, fournis ce JSON :
   "where": "Où (lieu précis)",
   "why": "Pourquoi / contexte",
   "isTrue": true ou false,
-  "source": "nom-du-vrai-media.fr",
-  "truth": "Pour les vraies : confirme et explique comment vérifier. Pour les fausses : révèle QUEL W est faux et quelle est la vraie valeur."
+  "source": "nom-du-media.fr",
+  "sourceUrl": "https://url-complete-si-possible-sinon-vide",
+  "truth": "Pour les vraies : confirme et explique comment vérifier. Pour les fausses : révèle QUELS W sont faux et quelle est la vraie valeur."
 }
 
 Séparation entre chaque info : ===
-Réponds UNIQUEMENT avec les JSONs séparés par ===, sans texte avant ou après.`;
+Réponds UNIQUEMENT avec les JSONs séparés par ===, sans texte avant ou après.\`;
 
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -590,7 +602,7 @@ async function startGame(diff) {
   if (diff === 'difficile') { nbVrai = 4; nbFaux = 1; }
 
   try {
-    const allInfos = await fetchAllInfos(nbVrai, nbFaux);
+    const allInfos = await fetchAllInfos(nbVrai, nbFaux, diff);
     questions = shuffle(allInfos).slice(0, 5);
     showScreen('playing');
     renderQuestion();
@@ -612,6 +624,11 @@ function renderQuestion() {
   document.getElementById('w-where').textContent = q.where;
   document.getElementById('w-why').textContent   = q.why;
   document.getElementById('w-source').textContent = q.source;
+
+  // QR code via API gratuite
+  const qrContainer = document.getElementById('qr-container');
+  const url = q.sourceUrl && q.sourceUrl.startsWith('http') ? q.sourceUrl : 'https://' + q.source;
+  qrContainer.innerHTML = \`<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=\${encodeURIComponent(url)}&bgcolor=1e1e45&color=ffffff&qzone=1" alt="QR source" style="border-radius:6px;width:80px;height:80px">\`;
 
   const card = document.getElementById('card');
   card.classList.remove('exit-up','exit-down','correct','wrong');
